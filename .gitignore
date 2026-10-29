@@ -1,0 +1,39 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Tailscale state, Bedrock Voice Chat state/TLS, and Minecraft runtime data
+tailscale-state/
+bvc-data/
+data/
+backups/
+
+# The raw handoff export contains private identifiers and is intentionally local-only.
+conversation-export.md
+
+# Local secrets and generated state
+*.pem
+*.key
+*.crt
+*.db
+*.sqlite
+*.sqlite3
+variables.json
+worlds/
+*.log
+
+# macOS/editor noise
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.vscode/
+.idea/
+
+# Imported game packs/worlds are inputs, not repository source.
+*.mcworld
+*.mcpack
+*.mcaddon
+*.zip
+

@@ -1,0 +1,67 @@
+services:
+  tailscale:
+    image: ${TAILSCALE_IMAGE:-tailscale/tailscale:latest}
+    container_name: bedrock-tailscale
+    hostname: ${TS_HOSTNAME:-minecraft-bedrock}
+    restart: unless-stopped
+    # tailscaled uses --accept-dns=false in the container image. This local
+    # mapping lets BDS reach BVC over HTTPS with the correct TLS hostname.
+    extra_hosts:
+      - "${TS_DOMAIN:-minecraft-bedrock.example.ts.net}:127.0.0.1"
+    environment:
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "false"
+      TS_AUTH_ONCE: "true"
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+    volumes:
+      - ./tailscale-state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      # Optional local/LAN fallback. Remote traffic uses Tailscale directly.
+      - "19132:19132/udp"
+      - "19133:19133/udp"
+      - "19132:19132/tcp"
+      - "${SERVER_UDP_PORTS:-19140-19155}:${SERVER_UDP_PORTS:-19140-19155}/udp"
+
+  bedrock-voice:
+    profiles: ["voice"]
+    image: ${BVC_IMAGE:-ghcr.io/alaydriem/bedrock-voice-chat/server:1.0.0-beta.23}
+    container_name: bedrock-voice
+    user: "0:0"
+    network_mode: "service:tailscale"
+    depends_on:
+      - tailscale
+    restart: unless-stopped
+    volumes:
+      - ./bvc-data:/data
+
+  bedrock-server:
+    image: ${BDS_IMAGE:-itzg/minecraft-bedrock-server:latest}
+    container_name: bedrock-server
+    platform: ${BDS_PLATFORM:-linux/amd64}
+    network_mode: "service:tailscale"
+    depends_on:
+      - tailscale
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    environment:
+      EULA: "TRUE"
+      VERSION: ${VERSION:-LATEST}
+      SERVER_NAME: ${SERVER_NAME:-Mac Private Bedrock}
+      LEVEL_NAME: ${LEVEL_NAME:-Voice World}
+      GAMEMODE: ${GAMEMODE:-survival}
+      DIFFICULTY: ${DIFFICULTY:-normal}
+      MAX_PLAYERS: ${MAX_PLAYERS:-10}
+      ALLOW_CHEATS: ${ALLOW_CHEATS:-false}
+      ALLOW_LIST: ${ALLOW_LIST:-false}
+      TRANSPORT: ${TRANSPORT:-nethernet}
+      SERVER_UDP_PORTS: ${SERVER_UDP_PORTS:-19140-19155}
+      CONTENT_LOG_CONSOLE_OUTPUT_ENABLED: "true"
+      STOP_SERVER_ANNOUNCE_DELAY: "5"
+    volumes:
+      - ./data:/data
+
