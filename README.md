@@ -36,7 +36,7 @@ On an Apple Silicon Mac, install [OrbStack](https://orbstack.dev/) and start its
 Clone this repository somewhere separate from any existing live server:
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/minecraft-bedrock-tailscale.git
+git clone https://github.com/rnxee/minecraft-bedrock-tailscale.git
 cd minecraft-bedrock-tailscale
 cp .env.example .env
 ```
